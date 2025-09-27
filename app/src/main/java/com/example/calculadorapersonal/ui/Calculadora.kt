@@ -26,6 +26,7 @@ fun Calculadora(onNavigateToHistorial: () -> Unit = {}) {
     var montoTexto by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var mensajeError by remember { mutableStateOf("") }
+    var mostrarHistorial by remember { mutableStateOf(true) }
 
     val scope = rememberCoroutineScope()
 
@@ -45,21 +46,30 @@ fun Calculadora(onNavigateToHistorial: () -> Unit = {}) {
             mensajeError = error
             return
         }
+
         val monto = montoTexto.toDouble()
-        val nuevaTransaccion = Transaccion(monto, descripcion, tipo)
+        val nuevaTransaccion = Transaccion(
+            id = "", // Se asignará automáticamente en Firestore
+            monto = monto,
+            descripcion = descripcion,
+            tipo = tipo
+        )
 
         scope.launch {
             try {
                 FirestoreService.agregarTransaccion(nuevaTransaccion)
+                // Al agregar la transacción, el Flow de Firestore actualizará automáticamente la lista
+                mensajeError = ""
             } catch (e: Exception) {
                 mensajeError = "Error al guardar en la nube: ${e.message}"
             }
         }
 
+        // Limpiar campos de entrada
         montoTexto = ""
         descripcion = ""
-        mensajeError = ""
     }
+
 
     Column(
         modifier = Modifier
@@ -140,6 +150,7 @@ fun Calculadora(onNavigateToHistorial: () -> Unit = {}) {
                     montoTexto = ""
                     descripcion = ""
                     mensajeError = ""
+                    mostrarHistorial = false // limpiar mini-historia en UI
                 },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
@@ -165,29 +176,37 @@ fun Calculadora(onNavigateToHistorial: () -> Unit = {}) {
         }
 
         // Mostrar solo las 3 más recientes
-        transacciones.take(3).forEach { trans ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                elevation = CardDefaults.cardElevation(2.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+        if (mostrarHistorial) {
+            transacciones.take(3).forEach { trans ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    elevation = CardDefaults.cardElevation(2.dp)
                 ) {
-                    Column {
-                        Text("${trans.tipo} - ${trans.descripcion}")
-                        Text(trans.fecha, fontSize = 12.sp, color = Color.Gray)
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("${trans.tipo} - ${trans.descripcion}")
+                            Text(trans.fecha, fontSize = 12.sp, color = Color.Gray)
+                        }
+                        Text(
+                            text = "$${String.format("%.2f", trans.monto)}",
+                            color = if (trans.tipo == TipoTransaccion.INGRESO) Color(0xFF4CAF50) else Color(0xFFF44336),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                    Text(
-                        text = "$${String.format("%.2f", trans.monto)}",
-                        color = if (trans.tipo == TipoTransaccion.INGRESO) Color(0xFF4CAF50) else Color(0xFFF44336),
-                        fontWeight = FontWeight.Bold
-                    )
                 }
             }
+        } else {
+            Text(
+                "Historial limpio en la interfaz",
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
     }
 }

@@ -6,6 +6,7 @@ import java.util.*
 enum class TipoTransaccion { INGRESO, GASTO }
 
 data class Transaccion(
+    val id: String = "",  // ID de Firestore
     val monto: Double = 0.0,
     val descripcion: String = "",
     val tipo: TipoTransaccion = TipoTransaccion.GASTO,

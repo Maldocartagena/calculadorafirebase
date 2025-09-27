@@ -5,9 +5,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.calculadorapersonal.ui.Calculadora
 import com.example.calculadorapersonal.ui.HistorialScreen
+import com.example.calculadorapersonal.ui.Calculadora
 
+
+// Define rutas de navegación
 object Destinos {
     const val CALCULADORA = "calculadora"
     const val HISTORIAL = "historial"
