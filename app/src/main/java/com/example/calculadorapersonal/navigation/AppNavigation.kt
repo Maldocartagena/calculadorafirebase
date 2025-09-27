@@ -24,7 +24,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
         composable(Destinos.HISTORIAL) {
-            HistorialScreen()
+            HistorialScreen(navController = navController) // <-- Pasamos el NavController
         }
     }
 }
